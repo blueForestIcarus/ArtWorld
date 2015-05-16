@@ -12,7 +12,7 @@ class Auth {
 
      String id = "938657500643-uutcpvhpgo023ueueh10mg2vb6o2s7m6.apps.googleusercontent.com";
      String secret = "7vUgT2k3Hc81YIELivlA8DW5";
-     String tokenURL = "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=";
+     String tokenURL = "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=";//this isnt the best option, but it works
      
      int SERVER_ERROR = 500;
      int AUTH_FAILED = 401;
@@ -21,46 +21,62 @@ class Auth {
      Map<String, User> users;
      
      Auth() {
-          HttpClient client = new HttpClient();
-          Client authClient = new Client();
+          client = new HttpClient();
+          authClient = new Client();
           clientId = new GoogleAuth.ClientId(id, secret);
           
           users = new Map<String,User>();
      }
 
-     void loginRequestHandler(HttpRequest request, String string) {
-          print("request: " + string);
-          var requestData = JSON.decode(string);
-          String code = requestData["code"];
-          String email = requestData["email"];
+     void loginRequestHandler(HttpRequest request, Map data) {
+          String code = data["code"];
+          String id = data["id"];
 
           GoogleAuth.obtainAccessCredentialsViaCodeExchange(authClient, clientId, code).then((GoogleAuth.AccessCredentials token) {
-               client.getUrl(Uri.parse(tokenURL + token.accessToken.data)).then((HttpClientRequest request) {
-                    return request.close();
+               client.getUrl(Uri.parse(tokenURL + token.accessToken.data)).then((HttpClientRequest get) {
+                    return get.close();
                }).then((HttpClientResponse response) {
                     UTF8.decodeStream(response).then((String text) {
-                         var responceData = JSON.decode(text);
-                         if(email = responceData["email"]){
-                              Map<String,String> credencials = addUser(responceData["email"],responceData["id"]);
+                         print("token info: " + text);
+                         var responseData = JSON.decode(text);
+                         if(responseData["id"] == id){
+                              Map<String,String> credencials = addUser(responseData["email"],responseData["user_id"]);
                               var returnData = JSON.encode(credencials);
+                              print("return data: " + returnData);
                               request.response.write(returnData);
-                              
+                              request.response.close();     
                          }else{
-                              onLoginFailed(request,SERVER_ERROR);
+                              onLoginFailed(request,AUTH_FAILED);
                          }
-                    });
+
+                    }).catchError((e)=>onLoginFailed(request,SERVER_ERROR));
                });
           }, onError: (e) {
+               print(e);
                onLoginFailed(request,AUTH_FAILED);
           });
      }
      
-     void onLoginFailed(request, int code){
-          print("an error has occured, login failed");
-          addCorsHeaders(request.response, request);
+     void onLoginFailed(HttpRequest request, int code){
+          print("an error has occured, login failed - " + code.toString());
+          request.response.statusCode = code;
           request.response.write("authentication failed");
-          request.response.statusCode = code;//unauthorised
           request.response.close();
+     }
+     
+     void logoutHandler(HttpRequest request, Map data) {
+          String code = data["code"];
+          String username = data["username"];
+          String email = data["email"];
+          
+          User user = users[username];
+          
+          if(user != null && user.isValid(code)){
+               users.remove(username);
+          }
+
+          request.response.write("logged out successfully");
+          request.response.close();          
      }
      
      Map<String,String> addUser(String email, String id){
