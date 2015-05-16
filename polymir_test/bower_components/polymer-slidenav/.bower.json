@@ -1,0 +1,38 @@
+{
+  "name": "polymer-slidenav",
+  "version": "0.1.7",
+  "description": "A Polymer based web-component for sliding navigation menus",
+  "license": "MIT",
+  "main": "dist/polymer-slidenav.html",
+  "private": false,
+  "keywords": [
+    "web-components",
+    "web-component",
+    "polymer",
+    "menu",
+    "toggle",
+    "slide",
+    "navbar",
+    "navigation"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "*.png"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.3.3"
+  },
+  "homepage": "https://github.com/nobitagit/polymer-slidenav",
+  "_release": "0.1.7",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.7",
+    "commit": "0389a2fd6acbcf806b019bfea84854246b776f4f"
+  },
+  "_source": "git://github.com/nobitagit/polymer-slidenav.git",
+  "_target": "~0.1.7",
+  "_originalSource": "polymer-slidenav",
+  "_direct": true
+}

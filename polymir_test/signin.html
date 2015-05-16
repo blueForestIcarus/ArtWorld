@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <script src="https://apis.google.com/js/client:platform.js" async defer></script>
+
+    </head>
+
+    <body>
+        <span id="signinButton">
+            <span
+                class="g-signin"
+                data-callback="onAuthReady"
+                data-clientid="938657500643-uutcpvhpgo023ueueh10mg2vb6o2s7m6.apps.googleusercontent.com"
+                data-cookiepolicy="single_host_origin"
+                data-requestvisibleactions="http://schema.org/AddAction"
+                data-scope="https://www.googleapis.com/auth/plus.login">
+            </span>
+        </span>
+    </body>
+
+    <script>
+        function onAuthReady(authResult) {
+              if (authResult['status']['signed_in']) {
+                    console.log('User signed in...');
+                    var request = new XMLHttpRequest();
+                    request.open("LOGIN", "http://mechasdf.com:1555", true);
+                    request.send(authResult['code']);
+                    request.onreadystatechange = function() {
+                      if (request.readyState == 4){
+                        data = JSON.parse(request.responseText);
+                        console.log('verified');
+                        console.log(data);
+                        alert(data["email"]);
+                        alert(data["user_id"]);
+                        alert(data["expires_in"]);
+                      }
+                    };
+              } else {
+                    console.log('Sign-in state: ' + authResult['error']);
+              }
+
+            console.log(authResult);
+        }
+    </script>
+
+</html>

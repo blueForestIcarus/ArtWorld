@@ -1,0 +1,27 @@
+{
+  "name": "polymer-slidenav",
+  "version": "0.1.7",
+  "description": "A Polymer based web-component for sliding navigation menus",
+  "license": "MIT",
+  "main": "dist/polymer-slidenav.html",
+  "private": false,
+  "keywords": [
+    "web-components",
+    "web-component",
+    "polymer",
+    "menu",
+    "toggle",
+    "slide",
+    "navbar",
+    "navigation"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "*.png"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#~0.3.3"
+  }
+}

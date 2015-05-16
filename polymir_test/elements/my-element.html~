@@ -1,0 +1,12 @@
+
+
+<polymer-element name="my-element">
+  <template>
+    This is <b>{{owner}}</b>'s name-tag element.
+  </template>
+  <script>
+    Polymer({
+      owner: 'Daniel'
+    });
+  </script>
+</polymer-element>
