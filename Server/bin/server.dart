@@ -46,7 +46,50 @@ void dispatch(HttpRequest request){
      }
      
      else if(request.method == "POST"){
+          String username = request.headers.value("user");
+          String code = request.headers.value("code");
           
+          if( username == null || code == null ){
+               print("auth failed, no credencials");
+               request.response.statusCode = 401;
+               request.response.write("must send auth. credencials");
+               request.response.close();
+               return;
+
+          }
+          
+          if(! authenticator.authenticate(username, code)){
+               print("auth failed");
+               request.response.statusCode = 401;
+               request.response.write("authentication failed" + username + " " + code);
+               request.response.close();
+               return;
+
+          }
+          
+          Pattern pattern = new RegExp("^/resources/users/$username/pages/[a-zA-Z\d]+/\$");
+
+          if(!request.uri.path.contains(pattern)){
+               print("invalid path: " + request.uri.path);
+               request.response.statusCode = 401;
+               request.response.write("invalid path");
+               request.response.close();
+               return;
+          }
+          
+          decodeJSON(request, (Map data){
+               if(data.keys.contains("img")){
+                    //save
+               }
+               
+               if(data.keys.contains("map")){
+                    //save
+               }
+               
+               if(data.keys.contains("xml")){
+                    //save
+               }
+          });
      }
 }
 
@@ -54,11 +97,10 @@ void decodeJSON(HttpRequest request, Function onDone){
      UTF8.decodeStream(request).then((string) {
           print("data: " + string);
           
-          var data;
+          Map data;
           
           try{
                data = JSON.decode(string);
-               assert(data is Map);
           }catch(e){
                print("cannot read data as JSON -- aborting");
                request.response.write("invalid JSON");
@@ -67,7 +109,7 @@ void decodeJSON(HttpRequest request, Function onDone){
           }
           
           onDone(data);
-     });
+     }).catchError(print);
 }
 
 //a temporary fix

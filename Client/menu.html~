@@ -34,7 +34,6 @@
             box-shadow: rgb(34, 34, 34) 0px -3px 10px 1px inset;
         }
         .sl-menu{
-            width: 100%;
             padding: 20px;
             margin: 0;
             padding-left: 0;
@@ -46,29 +45,40 @@
             cursor: pointer;
         }
         .sl-menu li:hover{
-            color: rgb(240,240,240);			
+            color: rgb(240,240,240);
+            cursor: pointer;			
+        }
+
+        #signinButton{
+            margin-right:10px;	
+        }   
+
+        #user_menu.signedin #signedin_menu{
+            display:initial;
+        }
+
+        #user_menu.signedout #signedin_menu{
+            display:none;
+        }
+
+        #user_menu.signedin #signedout_menu{
+            display:none;
+        }
+
+        #user_menu.signedout #signedout_menu{
+            display:initial;
+        }
+
+
+        .sl-menu a {
+          color: inherit; /* blue colors for links too */
+          text-decoration: inherit; /* no underline */
         }
 
         #content{
             position:relative;
             top:60px;
             width:100%;
-        }
-
-        #signInOut.signin #signinButton{
-            display:initial;
-        }
-
-        #signInOut.signout #signinButton{
-            display:none;
-        }
-
-        #signInOut.signin #signoutButton{
-            display:none;
-        }
-
-        #signInOut.signout #signoutButton{
-            display:initial;
         }
 
 	</style>
@@ -122,19 +132,26 @@
             }
 
             function login(data){
-                document.getElementById("signInOut").className = "signout";  
+                document.getElementById("user_menu").className = "signedin";  
                 setUser(data); 
+                document.getElementById("username").innerHTML = user.username;
             }
 
             function logout(){
-                document.getElementById("signInOut").className = "signin";  
+                var credencials = JSON.stringify({
+                    code:user["code"],
+                    email:user["email"],
+                    username:user["username"]
+                });
+
+                document.getElementById("user_menu").className = "signedout";  
                 setUser("guest");
 
                 gapi.auth.signOut();
 
                 var request = new XMLHttpRequest();
                 request.open("LOGOUT", "http://mechasdf.com:1555", true);      
-                request.send();     
+                request.send(credencials);     
             } 
         </script>
 
@@ -145,27 +162,43 @@
     <body unresolved>
         <polymer-slidenav speed=".2s" togglerUnder="true">
             <slidenav-menu>
-                <ul id="menu" class="sl-menu">
-                    <li>Home</li>
-                    <li>Users</li>
-                    <li>Pages</li>
-                    <li>About</li>
-                    <li id="signInOut" class="signin">
-                        <span id="signinButton">
-                            <span
-                                class="g-signin"
-                                data-callback="onAuthReady"
-                                data-clientid="938657500643-uutcpvhpgo023ueueh10mg2vb6o2s7m6.apps.googleusercontent.com"
-                                data-cookiepolicy="single_host_origin"
-                                data-scope="email">
-                            </span>
-                        </span>      
-                        <span id="signoutButton" onclick="logout()">
-                            Logout
-                        </span>              
-                    </li>
-    
-                </ul>
+
+                <div horizontal layout>
+                    <ul id="menu" class="sl-menu">
+                        <li>Home</li>
+                        <li>Users</li>
+                        <li>Pages</li>
+                        <li>About</li> 
+                    </ul>
+
+                    <div flex>
+                    </div>
+
+                    <div id="user_menu" class="signedout">
+                        <ul id="signedout_menu" class="sl-menu">
+                            <li id="signinButton">
+                                <span
+                                    class="g-signin"
+                                    data-callback="onAuthReady"
+                                    data-clientid="938657500643-uutcpvhpgo023ueueh10mg2vb6o2s7m6.apps.googleusercontent.com"
+                                    data-cookiepolicy="single_host_origin"
+                                    data-scope="email">
+                                </span>
+                            </li>
+                        </ul>
+
+                        <span id="signedin_menu" vertical layout>
+                            <h3 id="username">username</h3>
+                            <ul class="sl-menu">
+                                <li><a href="upload.html">upload</a></li>
+                                <li id="signoutButton" onclick="logout()">
+                                    Logout
+                                </li>   
+                            </ul>             
+                        </span>
+                    </div>
+                </div>
+
             </slidenav-menu>
             <slidenav-toggler class="sl-toggle">
                 <svg width="30" height="30" id="icoOpen2">
@@ -202,21 +235,37 @@
                     -webkit-user-select: none;
                     user-select: none;
                     color: #333;
-                }    
+                }  
+                
+                #display-image{
+                    width:100%;
+                    height:100%;
+                }  
             </style>
 
             <div id="display">
-                <img id="image" src="">
+                <img id="display-image" src="">
             </div>
         	<p id="display-title">testPage@testUser</p> 
 
             <script>
                 var display = document.getElementById("display");
-                var image = document.getElementById("image");
+                var image = document.getElementById("display-image");
                 var title = document.getElementById("display-title");
-    
+
+                var canvas = document.createElement("canvas");   
+                var context = canvas.getContext("2d");
+                var map = new Image();
+
+                map.addEventListener("load", drawMapToCanvas);
+                image.addEventListener("click", onclickImage);
+
                 window.addEventListener("resize", resizeDisplay);            
-                resizeDisplay();        
+                resizeDisplay();
+            
+                var homepage = "rockycoast@erichspaker";
+
+                var currentpage = {};       
 
                 function resizeDisplay(){
                     var maxHeight = document.body.getBoundingClientRect().height;
@@ -234,33 +283,101 @@
                     display.style.width = width + "px"; 
                 }
 
-                function loadPage(id){
-                    var l = id.split("@");
+                function loadPage(address){
+                    console.log("switching to page: " + address);
+                    var url = pageURL(address);
+                    
+                    var request = new XMLHttpRequest();
+                    request.open("GET", url + "info.xml", true);
+                    request.onload = function() {      
+                        if(request.status == 200){
+                            //page exists
+                            loadXML(request.responseXML);
+                            console.log("loaded XML for page " + address);
+                        }else{
+                            //page does not exist
+                            console.warn("page (" + address +") does not exist");                        
+                        }
+                    }              
+                    request.send();
+                }
+
+                function pageURL(address){
+                    var l = address.split("@");
                     if(l.length!=2){
                         throw "could not parse page id";                    
                     }
 
                     var pageName = l[0];
                     var pageOwner = l[1];
-                    
-                    var request = new XMLHttpRequest();
-                    request.open("GET", "http://mechasdf.com/users/" + pageOwner + "/pages/" + pageName + "/info.xml", true);
-                    request.onload = function() {      
-                        if(request.status == 200){
-                            //page exists
-                            loadXML(request.responseText);
-                                                                   
-                        }else{
-                            //page does not exist
-                            console.log("page (" + id +") does not exist");                        
-                        }
-                    }              
-                    request.send();
+
+                    return "/resources/users/" + pageOwner + "/pages/" + pageName + "/";
                 }
 
-                function loadXML(raw){
-                    console.log(raw);
+                function drawMapToCanvas(){
+                    canvas.width = map.width;
+                    canvas.height = map.height;
+                    context.drawImage(map,0,0);
+                    console.log("canvas ready");
                 }
+
+                //get string for map color at <px>(%x) and <py>(%y)
+                function getCanvasColor(px,py){
+                    var mapX = Math.round(map.width * px);
+                    var mapY = Math.round(map.height * py);
+                    var data= context.getImageData(mapX, mapY, 1, 1).data;
+                           
+                    if(data.length != 4){
+                        console.warn("image data must be of length 4");
+                    }
+
+                    var color = "["+ data[0] + "," + data[1] + "," + data[2] + "," + data[3] + "]";
+
+                    console.log("user pressed color: " + color);
+                    return color;
+                }
+
+                function onclickImage(event){
+                    var px = event.offsetX/image.width;
+                    var py = event.offsetY/image.height;
+                    
+                    var color = getCanvasColor(px,py);
+                    
+                    var link = currentpage.xml.querySelector("page link[color='" + color + "']");
+                    if(link != null){
+                        var address = link.getAttribute("target");
+                        loadPage(address);
+                    }
+                }
+
+                function loadXML(xml){
+                    currentpage.xml = xml;
+                    currentpage.owner = xml.querySelector("page").getAttribute("owner");
+                    currentpage.title = xml.querySelector("page").getAttribute("title");
+                    currentpage.address = currentpage.title + "@" + currentpage.owner;
+                    currentpage.url = pageURL(currentpage.address);
+                    
+                    image.src = currentpage.url + "img.png";
+                    map.src = currentpage.url + "map.png";
+                    title.innerHTML = currentpage.address;
+                    
+                    //preload
+                    var links = currentpage.xml.querySelectorAll("page link");
+                    for(var i = 0 ; i < links.length ; i++){
+                        //get the location for the linked page
+                        var location = pageURL( links[i].getAttribute("target") ); 
+
+                        //preload image
+                        var preload1 = new Image();    
+                        preload1.src = location+"img.png"; 
+
+                        //preload map
+                        var preload2 = new Image();              
+                        preload2.src = location+"map.png";           
+                    }
+                }
+
+                loadPage(homepage);
             </script>
 
         </div>

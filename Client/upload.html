@@ -75,12 +75,6 @@
             text-decoration: inherit; /* no underline */
         }
 
-        #content{
-            position:relative;
-            top:60px;
-            width:100%;
-        }
-
 	</style>
 
     <head>
@@ -213,173 +207,111 @@
 
         <div id="content">
             <style>
-                #display {
-                    margin: auto;
-                    position: relative;
-                    border: 0px;
-                    background-color: #bbb;
-                    display: block-inline;
-
-                    -webkit-border-radius: 9px;
-                    -moz-border-radius: 9px;
-                    border-radius: 9px;
-
-                    overflow: hidden;
+                #content{
+                    position:relative;
+                    top:60px;
+                    width:80%;
+                    margin:auto;
                 }
 
-                #display-title {
-                    font-size: 24pt;  
-                    font-size: 2.3vw;
-                    text-align: center;
-                    margin: 40px auto;
-                    -webkit-user-select: none;
-                    user-select: none;
-                    color: #333;
-                }  
-                
-                #display-image{
-                    width:100%;
-                    height:100%;
-                }  
+                #steps{
+                    text-indent: 50px;     
+                    margin:20px;
+                }
+
+                dt{
+                    color:#AAA;
+                    margin:10px;
+                    font-size: 2em;
+                }
+
+                dd{
+                    padding:10px;
+                    margin:20px;
+                    font-size: 1.5em;
+                }
+
+                hr{
+                    margin:20px;                
+                }
+
+                #steps button{
+                    
+                }
+
             </style>
 
-            <div id="display">
-                <img id="display-image" src="">
-            </div>
-        	<p id="display-title">testPage@testUser</p> 
+            <form id="upload_form" action="/resources/users/" method="post"></form>
 
+            <dl id="steps">
+
+                <dt>Step 1:</dt>
+                <dd>
+                    <input id="image_input" 
+                    type="file"     
+                    name="img" 
+                    form="upload_form" 
+                    accept="image/png" 
+                    style="display:none" 
+                    onclick="image_input_handler">
+
+                    Image: <button onclick="document.getElementById('image_input').click()">upload</button>
+                    <img id="image_preview"></img>
+                </dd>
+
+                <hr>
+
+
+                <dt>Step 1:</dt>
+                <dd>
+                    <input id="map_input" 
+                    type="file"     
+                    name="img" 
+                    form="upload_form" 
+                    accept="image/png" 
+                    style="display:none" 
+                    onclick="">
+
+                    Map: <button onclick="{document.getElementById('map_input').click()}">upload</button>
+                    <img id="map_preview"></img>
+                </dd>
+
+                <hr>
+
+
+                <dt>Step 1:</dt>
+                <dd>
+                    links!!!
+                </dd>
+
+                <hr>
+
+
+                <dt>Step 1:</dt>
+                <dd>
+                    Title: <input type="text" id="title">
+                </dd>
+
+                <hr>
+
+
+                <dt>Step 1:</dt>
+                <dd>
+                    XML: <textarea id="xml_textarea" name="xml" form="upload_form"></textarea>
+                </dd>
+
+                <dd>
+                   <button id="submit" onclick="submit">Submit</button>
+                </dd>
+
+
+
+
+            </dl>
+    
             <script>
-                var display = document.getElementById("display");
-                var image = document.getElementById("display-image");
-                var title = document.getElementById("display-title");
-
-                var canvas = document.createElement("canvas");   
-                var context = canvas.getContext("2d");
-                var map = new Image();
-
-                map.addEventListener("load", drawMapToCanvas);
-                image.addEventListener("click", onclickImage);
-
-                window.addEventListener("resize", resizeDisplay);            
-                resizeDisplay();
-            
-                var homepage = "rockycoast@erichspaker";
-
-                var currentpage = {};       
-
-                function resizeDisplay(){
-                    var maxHeight = document.body.getBoundingClientRect().height;
-                    var maxWidth = document.getElementById("content").getBoundingClientRect().width;
-                    var ratio = maxWidth/maxHeight;
-                    if(ratio > 1.1){
-                        var width = .6 * maxWidth;
-                        var height = .5 * width; 
-                    }else{
-                        var width = .95 * maxWidth;
-                        var height = .5 * width; 
-                    }
-
-                    display.style.height = height + "px";                
-                    display.style.width = width + "px"; 
-                }
-
-                function loadPage(address){
-                    console.log("switching to page: " + address);
-                    var url = pageURL(address);
-                    
-                    var request = new XMLHttpRequest();
-                    request.open("GET", url + "info.xml", true);
-                    request.onload = function() {      
-                        if(request.status == 200){
-                            //page exists
-                            loadXML(request.responseXML);
-                            console.log("loaded XML for page " + address);
-                        }else{
-                            //page does not exist
-                            console.warn("page (" + address +") does not exist");                        
-                        }
-                    }              
-                    request.send();
-                }
-
-                function pageURL(address){
-                    var l = address.split("@");
-                    if(l.length!=2){
-                        throw "could not parse page id";                    
-                    }
-
-                    var pageName = l[0];
-                    var pageOwner = l[1];
-
-                    return "/resources/users/" + pageOwner + "/pages/" + pageName + "/";
-                }
-
-                function drawMapToCanvas(){
-                    canvas.width = map.width;
-                    canvas.height = map.height;
-                    context.drawImage(map,0,0);
-                    console.log("canvas ready");
-                }
-
-                //get string for map color at <px>(%x) and <py>(%y)
-                function getCanvasColor(px,py){
-                    var mapX = Math.round(map.width * px);
-                    var mapY = Math.round(map.height * py);
-                    var data= context.getImageData(mapX, mapY, 1, 1).data;
-                           
-                    if(data.length != 4){
-                        console.warn("image data must be of length 4");
-                    }
-
-                    var color = "["+ data[0] + "," + data[1] + "," + data[2] + "," + data[3] + "]";
-
-                    console.log("user pressed color: " + color);
-                    return color;
-                }
-
-                function onclickImage(event){
-                    var px = event.offsetX/image.width;
-                    var py = event.offsetY/image.height;
-                    
-                    var color = getCanvasColor(px,py);
-                    
-                    var link = currentpage.xml.querySelector("page link[color='" + color + "']");
-                    if(link != null){
-                        var address = link.getAttribute("target");
-                        loadPage(address);
-                    }
-                }
-
-                function loadXML(xml){
-                    currentpage.xml = xml;
-                    currentpage.owner = xml.querySelector("page").getAttribute("owner");
-                    currentpage.title = xml.querySelector("page").getAttribute("title");
-                    currentpage.address = currentpage.title + "@" + currentpage.owner;
-                    currentpage.url = pageURL(currentpage.address);
-                    
-                    image.src = currentpage.url + "img.png";
-                    map.src = currentpage.url + "map.png";
-                    title.innerHTML = currentpage.address;
-                    
-                    //preload
-                    var links = currentpage.xml.querySelectorAll("page link");
-                    for(var i = 0 ; i < links.length ; i++){
-                        //get the location for the linked page
-                        var location = pageURL( links[i].getAttribute("target") ); 
-
-                        //preload image
-                        var preload1 = new Image();    
-                        preload1.src = location+"img.png"; 
-
-                        //preload map
-                        var preload2 = new Image();              
-                        preload2.src = location+"map.png";           
-                    }
-                }
-
-                loadPage(homepage);
+                var form = document.getElementById("upload_form");
             </script>
-
         </div>
     </body>
 </html>

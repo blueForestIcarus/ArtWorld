@@ -84,6 +84,11 @@ class Auth {
           users[user.username] = user;
           return user.getCredencials();
      }
+     
+     bool authenticate(String username, String code){
+          User user = users[username];
+          return user != null && user.isValid(code) && user.isNotExpired();
+     }
 }
 
 class User {
@@ -92,6 +97,7 @@ class User {
      String username;
      String code;
      DateTime expires;
+     Directory dir;
      
      final int CODE_LENGTH = 33;
      final Random random = new Random();
@@ -108,6 +114,12 @@ class User {
 
           DateTime now = new DateTime.now();
           expires = now.add(new Duration(minutes: 30));
+          
+          Directory dir= new Directory('/home/sb/www/artworld/resources/users/' + username);
+          if(! dir.existsSync()){
+               dir.create();
+          }
+          
      }
      
      String genCode(){
@@ -126,17 +138,4 @@ class User {
      Map<String,String> getCredencials(){
           return {"id":id, "email":email,"username":username,"code":code};
      }
-}
-
-//a temporary fix
-void addCorsHeaders(HttpResponse res, HttpRequest req) {
-     //print(req.headers.value("Origin"));
-     res.headers.add("Access-Control-Allow-Credentials", "true");
-     res.headers.add("Access-Control-Allow-Origin", req.headers.value("Origin"));
-     res.headers.add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, HEAD, LOGIN");
-     res.headers.add("Access-Control-Allow-Headers", req.headers.value("Access-Control-Request-Headers"));
-     res.headers.add("Access-Control-Expose-Headers", "status");
-
-     //Access-Control-Max-Age
-     //res.headers.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, TYPE, USER, PASS, STATUS");
 }
