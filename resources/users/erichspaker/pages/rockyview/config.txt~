@@ -1,0 +1,9 @@
+#[ 255,255,255,255] {@testUser} 
+#[0,0,0,255] {rockycoast@testUser} 
+<xml>
+    <page title="cave" owner="erichspaker">
+        <link color="[255,255,255,255]" target="THESUN@erichspaker" />
+        <link color="[0,0,0,255]" target="rockycoast@erichspaker" />
+    </page>
+</xml>
+

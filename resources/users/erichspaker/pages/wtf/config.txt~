@@ -1,0 +1,8 @@
+#[ 255,255,255,255] {dumb@testUser} 
+<xml>
+    <page title="cave" owner="erichspaker">
+        <link color="[255,255,255,255]" target="dumb@erichspaker" />
+        <link color="[0,0,0,255]" target="rockycoast@erichspaker" />
+    </page>
+</xml>
+

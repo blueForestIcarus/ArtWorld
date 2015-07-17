@@ -1,0 +1,8 @@
+<xml>
+    <page title="rockycoast" owner="erichspaker">
+        <link color="[255,255,255,255]" target="cave@erichspaker" />
+        <link color="[0,0,0,255]" target="rockyview@erichspaker" />
+        <link color="[255,0,0,255]" target="lowRes@erichspaker" />
+    </page>
+</xml>
+
